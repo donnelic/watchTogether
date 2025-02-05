@@ -35,26 +35,55 @@ function setStream () {
   title.style.display = 'none'
 }
 
-function loadStream (url) {
-  if (Hls.isSupported()) {
-    const hls = new Hls()
-    hls.loadSource(url)
-    hls.attachMedia(video)
-    hls.on(Hls.Events.ERROR, function (event, data) {
-      if (data.fatal) {
-        switch (data.fatal) {
-          case Hls.ErrorTypes.NETWORK_ERROR:
-            alert('Network error encountered while loading the video.')
-            break
-          case Hls.ErrorTypes.OTHER_ERROR:
-            alert('An error occurred while loading the video.')
-            break
-        }
+function loadStream(url) {
+  const video = document.getElementById('your-video-element-id'); // Replace with your actual video element ID
+
+  // Fetch the .m3u8 file
+  fetch(url)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.text(); // Get the text content of the response
+    })
+    .then(m3u8Content => {
+      // Create a blob URL for the .m3u8 content
+      const blob = new Blob([m3u8Content], { type: 'application/x-mpegURL' });
+      const blobURL = URL.createObjectURL(blob);
+
+      if (Hls.isSupported()) {
+        const hls = new Hls();
+        hls.loadSource(blobURL); // Load the blob URL
+        hls.attachMedia(video);
+
+        hls.on(Hls.Events.ERROR, function (event, data) {
+          if (data.fatal) {
+            switch (data.fatal) {
+              case Hls.ErrorTypes.NETWORK_ERROR:
+                alert('Network error encountered while loading the video.');
+                break;
+              case Hls.ErrorTypes.OTHER_ERROR:
+                alert('An error occurred while loading the video.');
+                break;
+            }
+          }
+        });
+
+        hls.on(Hls.Events.MANIFEST_PARSED, function () {
+          video.play(); // Play the video when the manifest is parsed
+        });
+      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = blobURL; // For browsers that support HLS natively
+        video.addEventListener('loadedmetadata', function () {
+          video.play(); // Play the video when metadata is loaded
+        });
+      } else {
+        alert('HLS is not supported in your browser.');
       }
     })
-  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-    video.src = url
-  }
+    .catch(error => {
+      console.error('There was a problem with the fetch operation:', error);
+    });
 }
 
 video.addEventListener('play', () =>
