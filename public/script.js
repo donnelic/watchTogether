@@ -1,4 +1,4 @@
-const socket = io("https://your-vercel-backend.vercel.app");
+const socket = io("https://watch-together-iota.vercel.app/api/socket");
         const video = document.getElementById('video');
         const urlInput = document.getElementById('m3u8Url');
         const title = document.getElementById('title');
