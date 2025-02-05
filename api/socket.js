@@ -2,7 +2,7 @@ const { Server } = require("socket.io");
 
 const io = new Server({
     cors: {
-        origin: "https://watch-together-iota.vercel.app", // Your frontend URL
+        origin: "https://watch-together-iota.vercel.app/", // Your frontend URL
         methods: ["GET", "POST"],
     },
 });
